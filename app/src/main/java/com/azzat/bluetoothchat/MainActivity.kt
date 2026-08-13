@@ -21,6 +21,9 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Call
+import androidx.compose.material.icons.filled.MoreVert
+import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Send
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -31,6 +34,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import java.io.BufferedReader
 import java.io.InputStreamReader
 import java.io.OutputStreamWriter
@@ -53,11 +57,11 @@ class BluetoothChat(private val context: Context, private val onMessage: (String
                 if (!hasConnectPermission()) return@thread
                 val server: BluetoothServerSocket =
                     adapter!!.listenUsingRfcommWithServiceRecord("عزت السراء", APP_UUID)
-                onStatus("بانتظار اتصال جهاز مقترن…")
+                onStatus("بانتظار الاتصال…")
                 val s = server.accept()
                 server.close()
                 attach(s)
-            } catch (e: Exception) { onStatus("تعذر فتح الاتصال: ${e.message}") }
+            } catch (e: Exception) { onStatus("خطأ بالاتصال: تأكد من اقتران الجهازين") }
         }
     }
 
@@ -144,73 +148,65 @@ class MainActivity : ComponentActivity() {
             if (messages.isNotEmpty()) listState.animateScrollToItem(messages.lastIndex)
         }
 
-        // الألوان الاحترافية الجديدة
-        MaterialTheme(colorScheme = lightColorScheme(
-            primary = Color(0xFF1E293B), // أزرق داكن ليلي
-            secondary = Color(0xFF3B82F6), // أزرق ساطع للأزرار
-            background = Color(0xFFF1F5F9) // خلفية مريحة للعين
-        )) {
+        // ألوان واتساب الرسمية
+        val whatsappDarkGreen = Color(0xFF075E54)
+        val whatsappLightGreen = Color(0xFF128C7E)
+        val whatsappBackground = Color(0xFFECE5DD)
+        val whatsappBubbleMine = Color(0xFFDCF8C6)
+
+        MaterialTheme {
             Scaffold(
                 topBar = {
                     TopAppBar(
                         title = {
-                            Column {
-                                Text("عزت السراء | Peak Mentality", fontWeight = FontWeight.Bold)
-                                Text(
-                                    status, 
-                                    style = MaterialTheme.typography.labelMedium,
-                                    color = if (status == "متصل") Color(0xFF4ADE80) else Color(0xFF94A3B8)
-                                )
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                // أيقونة شخص دائرية مثل واتساب
+                                Surface(
+                                    modifier = Modifier.size(40.dp),
+                                    shape = CircleShape,
+                                    color = Color.LightGray
+                                ) {
+                                    Icon(Icons.Filled.Person, contentDescription = "", tint = Color.White, modifier = Modifier.padding(4.dp))
+                                }
+                                Spacer(Modifier.width(10.dp))
+                                Column {
+                                    Text("تطوير وصيانة عزت السراء", color = Color.White, fontSize = 18.sp, fontWeight = FontWeight.Bold)
+                                    Text(
+                                        status, 
+                                        color = Color.White.copy(alpha = 0.8f), 
+                                        fontSize = 13.sp
+                                    )
+                                }
                             }
                         },
-                        colors = TopAppBarDefaults.topAppBarColors(
-                            containerColor = MaterialTheme.colorScheme.primary,
-                            titleContentColor = Color.White
-                        )
+                        actions = {
+                            IconButton(onClick = { }) { Icon(Icons.Filled.Call, contentDescription = "", tint = Color.White) }
+                            IconButton(onClick = { }) { Icon(Icons.Filled.MoreVert, contentDescription = "", tint = Color.White) }
+                        },
+                        colors = TopAppBarDefaults.topAppBarColors(containerColor = whatsappDarkGreen)
                     )
                 }
             ) { pad ->
                 Column(
                     Modifier
                         .fillMaxSize()
-                        .background(MaterialTheme.colorScheme.background)
+                        .background(whatsappBackground) // خلفية المحادثة
                         .padding(pad)
                 ) {
-                    // قسم الأجهزة المقترنة بتصميم محسّن
-                    if (devices.isNotEmpty()) {
-                        Text(
-                            "الأجهزة المتاحة للاقتران", 
-                            fontWeight = FontWeight.SemiBold,
-                            color = Color.Gray,
-                            modifier = Modifier.padding(top = 12.dp, start = 16.dp, end = 16.dp, bottom = 4.dp)
-                        )
-                        LazyColumn(Modifier.heightIn(max = 100.dp)) {
+                    if (devices.isNotEmpty() && status != "متصل") {
+                        LazyColumn(Modifier.heightIn(max = 120.dp).background(Color.White)) {
                             items(devices) { d ->
-                                ElevatedCard(
+                                TextButton(
                                     onClick = { chat.connect(d) },
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .padding(horizontal = 16.dp, vertical = 4.dp),
-                                    colors = CardDefaults.elevatedCardColors(containerColor = Color.White)
+                                    modifier = Modifier.fillMaxWidth().padding(horizontal = 8.dp)
                                 ) {
-                                    Text(
-                                        d.name ?: d.address, 
-                                        modifier = Modifier.padding(16.dp),
-                                        fontWeight = FontWeight.Medium
-                                    )
+                                    Text("اتصل بـ: ${d.name ?: d.address}", color = whatsappDarkGreen, fontSize = 16.sp)
                                 }
                             }
                         }
-                    } else {
-                        Text(
-                            "الرجاء الاقتران بالجهاز الآخر من إعدادات البلوتوث أولاً.",
-                            modifier = Modifier.padding(24.dp),
-                            textAlign = TextAlign.Center,
-                            color = Color.Gray
-                        )
                     }
 
-                    // منطقة الدردشة
+                    // المحادثة
                     LazyColumn(
                         state = listState,
                         modifier = Modifier
@@ -225,71 +221,69 @@ class MainActivity : ComponentActivity() {
                                 horizontalArrangement = if (isMine) Arrangement.End else Arrangement.Start
                             ) {
                                 Surface(
-                                    color = if (isMine) MaterialTheme.colorScheme.secondary else Color.White,
-                                    shape = if (isMine) {
-                                        RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp, bottomStart = 16.dp, bottomEnd = 4.dp)
-                                    } else {
-                                        RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp, bottomStart = 4.dp, bottomEnd = 16.dp)
-                                    },
-                                    shadowElevation = 2.dp,
+                                    color = if (isMine) whatsappBubbleMine else Color.White,
+                                    shape = RoundedCornerShape(
+                                        topStart = 16.dp, 
+                                        topEnd = 16.dp, 
+                                        bottomStart = if (isMine) 16.dp else 4.dp, 
+                                        bottomEnd = if (isMine) 4.dp else 16.dp
+                                    ),
+                                    shadowElevation = 1.dp,
                                     modifier = Modifier.widthIn(min = 60.dp, max = 280.dp)
                                 ) { 
                                     Text(
                                         text = msg.text, 
-                                        color = if (isMine) Color.White else Color.Black,
-                                        modifier = Modifier.padding(horizontal = 14.dp, vertical = 10.dp)
+                                        color = Color.Black,
+                                        fontSize = 16.sp,
+                                        modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp)
                                     ) 
                                 }
                             }
                         }
                     }
 
-                    // مربع الإدخال الأنيق
-                    Surface(
-                        color = Color.White,
-                        shadowElevation = 8.dp
+                    // شريط الكتابة وزر الإرسال
+                    Row(
+                        Modifier
+                            .fillMaxWidth()
+                            .padding(8.dp)
+                            .navigationBarsPadding(),
+                        verticalAlignment = Alignment.Bottom
                     ) {
-                        Row(
-                            Modifier
-                                .fillMaxWidth()
-                                .padding(horizontal = 12.dp, vertical = 8.dp)
-                                .navigationBarsPadding(),
-                            verticalAlignment = Alignment.CenterVertically
+                        Surface(
+                            modifier = Modifier.weight(1f).padding(end = 8.dp),
+                            shape = RoundedCornerShape(24.dp),
+                            color = Color.White,
+                            shadowElevation = 1.dp
                         ) {
                             OutlinedTextField(
                                 value = text, 
                                 onValueChange = { text = it },
-                                modifier = Modifier.weight(1f),
-                                placeholder = { Text("اكتب رسالة ملهمة...") },
-                                shape = RoundedCornerShape(24.dp),
+                                modifier = Modifier.fillMaxWidth(),
+                                placeholder = { Text("المراسلة", color = Color.Gray, fontSize = 18.sp) },
                                 colors = OutlinedTextFieldDefaults.colors(
-                                    unfocusedBorderColor = Color.LightGray,
-                                    focusedBorderColor = MaterialTheme.colorScheme.secondary
+                                    focusedBorderColor = Color.Transparent,
+                                    unfocusedBorderColor = Color.Transparent
                                 ),
-                                maxLines = 4
+                                maxLines = 6
                             )
-                            Spacer(Modifier.width(8.dp))
-                            IconButton(
-                                onClick = {
-                                    val t = text.trim()
-                                    if (t.isNotEmpty()) {
-                                        chat.send(t)
-                                        messages.add(Msg(t, true))
-                                        text = ""
-                                    }
-                                },
-                                modifier = Modifier
-                                    .size(50.dp)
-                                    .clip(CircleShape)
-                                    .background(MaterialTheme.colorScheme.secondary)
-                            ) {
-                                Icon(
-                                    imageVector = Icons.Filled.Send,
-                                    contentDescription = "إرسال",
-                                    tint = Color.White,
-                                    modifier = Modifier.padding(start = 4.dp) // لضبط مركز السهم بصرياً
-                                )
-                            }
+                        }
+                        
+                        FloatingActionButton(
+                            onClick = {
+                                val t = text.trim()
+                                if (t.isNotEmpty()) {
+                                    chat.send(t)
+                                    messages.add(Msg(t, true))
+                                    text = ""
+                                }
+                            },
+                            containerColor = whatsappLightGreen,
+                            contentColor = Color.White,
+                            shape = CircleShape,
+                            modifier = Modifier.size(50.dp)
+                        ) {
+                            Icon(Icons.Filled.Send, contentDescription = "إرسال", modifier = Modifier.padding(start = 4.dp))
                         }
                     }
                 }

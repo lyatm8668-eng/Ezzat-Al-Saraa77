@@ -1,0 +1,24 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    
+    <!-- الخلفية الخضراء -->
+    <path
+        android:fillColor="#075E54"
+        android:pathData="M0,0h108v108h-108z"/>
+        
+    <!-- رسم فقاعة الدردشة البيضاء -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M54,20 C31.9,20 14,35.67 14,55 C14,65.85 19.93,75.51 28.7,81.37 L25.5,99 L41.1,92.75 C45.2,93.78 49.52,94.33 54,94.33 C76.1,94.33 94,78.67 94,59.33 C94,40 76.1,20 54,20 Z"/>
+        
+    <!-- نقاط الدردشة الداخلية -->
+    <path
+        android:fillColor="#128C7E"
+        android:pathData="M38,57 a6,6 0 1,0 12,0 a6,6 0 1,0 -12,0" />
+    <path
+        android:fillColor="#128C7E"
+        android:pathData="M58,57 a6,6 0 1,0 12,0 a6,6 0 1,0 -12,0" />
+</vector>
